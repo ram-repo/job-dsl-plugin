@@ -11,10 +11,10 @@ for (Github_repo in Github_repos)
       branchSource {
         source {
           Github {
-            credentialsId("git")
-            repoOwner("${Github_project.toUpperCase()}")
+          //  credentialsId("git")
+          //  repoOwner("${Github_project.toUpperCase()}")
             repository("${Github_repo}")
-            serverUrl("https://github.com/")
+          // serverUrl("https://github.com/")
             traits {
               headWildcardFilter {
                 includes("master release/* feature/* bugfix/*")
