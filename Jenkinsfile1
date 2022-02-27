@@ -1,5 +1,5 @@
 pipeline{
-    agent{ label: 'master'}
+    agent{ label any }
     stages("dsl_script"){
         stage(git_clone){
             steps('repo'){
@@ -8,9 +8,8 @@ pipeline{
         }
         stage(ExecuteDslScripts){
             steps{
-                ([
-                    $class: 'ExecuteDslScripts',
-                    scriptText: '''
+                $class: 'ExecuteDslScripts',
+                scriptText: '''
 multibranchPipelineJob('example') {
     branchSources {
         git {
@@ -25,25 +24,9 @@ multibranchPipelineJob('example') {
             numToKeep(20)
         }
     }
-}''' ])
+}''' 
                 
             }
         }
     }
-}
-
-node {
-    step([
-        $class: 'ExecuteDslScripts',
-        scriptText: 'job("example-2")'
-    ])
-    step([
-        $class: 'ExecuteDslScripts',
-        targets: ['jobs/projectA/*.groovy', 'jobs/common.groovy'].join('\n'),
-        removedJobAction: 'DELETE',
-        removedViewAction: 'DELETE',
-        lookupStrategy: 'SEED_JOB',
-        additionalClasspath: ['libA.jar', 'libB.jar'].join('\n'),
-        additionalParameters: [message: 'Hello from pipeline', credentials: 'SECRET']
-    ])
 }
