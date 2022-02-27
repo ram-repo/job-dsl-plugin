@@ -1,0 +1,49 @@
+pipeline{
+    agent{ label: 'master'}
+    stages("dsl_script"){
+        stage(git_clone){
+            steps('repo'){
+                git 'https://github.com/ram-repo/job-dsl-plugin'
+            }
+        }
+        stage(ExecuteDslScripts){
+            steps{
+                ([
+                    $class: 'ExecuteDslScripts',
+                    scriptText: '
+multibranchPipelineJob('example') {
+    branchSources {
+        git {
+            id('123456789') // IMPORTANT: use a constant and unique identifier
+            remote('https://github.com/jenkinsci/job-dsl-plugin.git')
+            credentialsId('github-ci')
+            includes('JENKINS-*')
+        }
+    }
+    orphanedItemStrategy {
+        discardOldItems {
+            numToKeep(20)
+        }
+    }
+}' ])
+                
+            }
+        }
+    }
+}
+
+node {
+    step([
+        $class: 'ExecuteDslScripts',
+        scriptText: 'job("example-2")'
+    ])
+    step([
+        $class: 'ExecuteDslScripts',
+        targets: ['jobs/projectA/*.groovy', 'jobs/common.groovy'].join('\n'),
+        removedJobAction: 'DELETE',
+        removedViewAction: 'DELETE',
+        lookupStrategy: 'SEED_JOB',
+        additionalClasspath: ['libA.jar', 'libB.jar'].join('\n'),
+        additionalParameters: [message: 'Hello from pipeline', credentials: 'SECRET']
+    ])
+}
